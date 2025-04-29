@@ -14,6 +14,7 @@ class Wad extends Model
     public array $maps = [];
     public string $path;
     public array $skippedLumps = [];
+    public array $thingsLookup = [];
 
     public function __construct(string $filePath)
     {
@@ -22,6 +23,7 @@ class Wad extends Model
         }
 
         $this->path = $filePath;
+        $this->loadThingsLookupFromCSV(storage_path('things-database.csv'));
         $this->parse();
         $this->createMaps();
     }
@@ -35,6 +37,26 @@ class Wad extends Model
                 $map = new Map($index, $this->lumps);
                 $this->maps[] = $map;
             }
+        }
+    }
+
+    protected function loadThingsLookupFromCSV(string $path): void
+    {
+        if (!file_exists($path)) {
+            throw new \RuntimeException("Things database CSV not found at: $path");
+        }
+
+        if (($handle = fopen($path, 'r')) !== false) {
+            $header = fgetcsv($handle);
+            while (($row = fgetcsv($handle)) !== false) {
+                [$id, $name, $type, $spawnhealth] = $row;
+                $this->thingsLookup[(int)$id] = [
+                    'name' => $name,
+                    'type' => $type,
+                    'spawnhealth' => (int)$spawnhealth,
+                ];
+            }
+            fclose($handle);
         }
     }
 
