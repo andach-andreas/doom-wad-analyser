@@ -9,6 +9,8 @@ class Map extends Model
     public string $name;
     public int $lumpIndex;
     public array $lumps = [];
+    public array $sectors = [];
+    public array $things = [];
 
     public function __construct(int $index, array $allLumps)
     {
@@ -16,6 +18,7 @@ class Map extends Model
         $this->lumpIndex = $index;
 
         $this->parseAssociatedLumps($allLumps);
+        $this->parseThings();
     }
 
     public function parseAssociatedLumps(array $allLumps): void
@@ -49,14 +52,19 @@ class Map extends Model
         }
     }
 
-    public function hasLump(string $lumpName): bool
+    public function parseThings()
     {
-        return isset($this->lumps[strtoupper($lumpName)]);
-    }
+        $thingLump = $this->lumps['THINGS'] ?? null;
 
-    public function getLump(string $lumpName): ?Lump
-    {
-        return $this->lumps[strtoupper($lumpName)] ?? null;
-    }
+        if (!$thingLump)
+        {
+            return;
+        }
 
+        for ($i = 0; $i < strlen($thingLump->data); $i += 10) {
+            $entry = substr($thingLump->data, $i, 10);
+            if (strlen($entry) < 10) continue;
+            $this->things[] = Thing::fromBinary($entry);
+        }
+    }
 }
