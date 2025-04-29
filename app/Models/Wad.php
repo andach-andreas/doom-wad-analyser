@@ -11,6 +11,7 @@ class Wad extends Model
     public int $dirOffset;
 
     public array $lumps = [];
+    public array $maps = [];
     public string $path;
     public array $skippedLumps = [];
 
@@ -22,6 +23,19 @@ class Wad extends Model
 
         $this->path = $filePath;
         $this->parse();
+        $this->createMaps();
+    }
+
+    private function createMaps()
+    {
+        $mapRegex = '/^(E[1-4]M[1-9]|MAP[0-9]{2})$/';
+
+        foreach ($this->lumps as $index => $lump) {
+            if (preg_match($mapRegex, $lump->name)) {
+                $map = new Map($index, $this->lumps);
+                $this->maps[] = $map;
+            }
+        }
     }
 
     private function parse(): void

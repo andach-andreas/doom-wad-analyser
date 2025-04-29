@@ -6,14 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class Lump extends Model
 {
-    private $name;
-    private $offset;
-    private $size;
-    private $data;
+    public $name;
+    public $offset;
+    public $size;
+    public $data;
 
     public function __construct(string $name, int $offset, int $size, $data = '')
     {
-        $this->name = $name;
+        $this->name = trim(strtoupper($name));
         $this->offset = $offset;
         $this->size = $size;
         $this->data = $data;
