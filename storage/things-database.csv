@@ -1,0 +1,33 @@
+id,name,type,spawnhealth
+3001,Former Human,monster,20
+3002,Former Sergeant,monster,30
+3003,Imp,monster,60
+3004,Demon,monster,150
+3005,Spectre,monster,150
+3006,Lost Soul,monster,100
+3007,Cacodemon,monster,400
+3008,Baron of Hell,monster,1000
+3009,Cyberdemon,monster,4000
+3010,Spider Mastermind,monster,3000
+58,Arch-Vile,monster,700
+68,Revenant,monster,300
+64,Mancubus,monster,600
+67,Arachnotron,monster,500
+69,Hell Knight,monster,500
+2001,Shotgun,weapon,0
+2002,Chaingun,weapon,0
+2003,Rocket Launcher,weapon,0
+2004,Plasma Gun,weapon,0
+2005,BFG9000,weapon,0
+2010,Clip,ammo,0
+2011,4 Shotgun Shells,ammo,0
+2012,Rocket,ammo,0
+2046,Cell Charge,ammo,0
+2014,Stimpack,health,0
+2015,Medikit,health,0
+2023,Megasphere,powerup,0
+2022,Soulsphere,powerup,0
+2026,Green Armor,armor,0
+2019,Blue Armor,armor,0
+82,Commander Keen,decoration,0
+83,Hanging Man,decoration,0
