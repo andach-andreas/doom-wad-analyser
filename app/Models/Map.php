@@ -6,19 +6,75 @@ use Illuminate\Database\Eloquent\Model;
 
 class Map extends Model
 {
-    public string $name;
+    public array $enemies = [];
     public int $lumpIndex;
+    public string $name;
     public array $lumps = [];
     public array $sectors = [];
+    public array $stats = [];
     public array $things = [];
+    public array $thingsLookup = [];
 
-    public function __construct(int $index, array $allLumps)
+    public function __construct(int $lumpIndex, array $allLumps, array $thingsLookup)
     {
-        $this->name = trim($allLumps[$index]->name);
-        $this->lumpIndex = $index;
+        $this->lumpIndex = $lumpIndex;
+        $this->name = trim($allLumps[$lumpIndex]->name);
+        $this->thingsLookup = $thingsLookup;
 
         $this->parseAssociatedLumps($allLumps);
         $this->parseThings();
+
+        $this->cacheStats();
+        $this->extractEnemies();
+    }
+
+    public function cacheStats(): void
+    {
+        $this->stats = [
+            'linedefs'   => $this->countLumpEntries('LINEDEFS', 14),
+            'sidedefs'   => $this->countLumpEntries('SIDEDEFS', 30),
+            'vertexes'   => $this->countLumpEntries('VERTEXES', 4),
+            'segs'       => $this->countLumpEntries('SEGS', 12),
+            'ssectors'   => $this->countLumpEntries('SSECTORS', 4),
+            'nodes'      => $this->countLumpEntries('NODES', 28),
+            'sectors'    => $this->countLumpEntries('SECTORS', 26),
+            'secretSectors' => $this->countSecretSectors(),
+        ];
+    }
+
+    protected function countLumpEntries(string $lumpName, int $entrySize): int
+    {
+        if (!isset($this->lumps[$lumpName])) return 0;
+        return intdiv(strlen($this->lumps[$lumpName]->data), $entrySize);
+    }
+
+    protected function countSecretSectors(): int
+    {
+        if (!isset($this->lumps['SECTORS'])) return 0;
+
+        $data = $this->lumps['SECTORS']->data;
+        $count = 0;
+        $entrySize = 26;
+        $numSectors = intdiv(strlen($data), $entrySize);
+
+        for ($i = 0; $i < $numSectors; $i++) {
+            $offset = $i * $entrySize;
+            $flags = unpack('v', substr($data, $offset + 20, 2))[1]; // Flags are at offset 20 in the sector struct
+            if ($flags & 0x8000) $count++;
+        }
+
+        return $count;
+    }
+
+    private function extractEnemies(): void
+    {
+        foreach ($this->things as $thing) {
+            $thingType = $this->thingsLookup[$thing->type]['type'] ?? '';
+
+            if ($thingType === 'monster') {
+                $this->enemies[] = $thing;
+            }
+        }
     }
 
     public function parseAssociatedLumps(array $allLumps): void

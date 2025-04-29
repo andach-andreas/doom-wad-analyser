@@ -34,7 +34,7 @@ class Wad extends Model
 
         foreach ($this->lumps as $index => $lump) {
             if (preg_match($mapRegex, $lump->name)) {
-                $map = new Map($index, $this->lumps);
+                $map = new Map($index, $this->lumps, $this->thingsLookup);
                 $this->maps[] = $map;
             }
         }
