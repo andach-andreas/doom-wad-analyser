@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Map extends Model
 {
     public array $enemies = [];
+    public int $enemiesCount = 0;
     public int $lumpIndex;
     public string $name;
     public array $lumps = [];
@@ -14,6 +15,9 @@ class Map extends Model
     public array $stats = [];
     public array $things = [];
     public array $thingsLookup = [];
+    public array $weapons = [];
+    public array $weaponsAvailable = [];
+    public int $weaponsCount = 0;
 
     public function __construct(int $lumpIndex, array $allLumps, array $thingsLookup)
     {
@@ -26,6 +30,8 @@ class Map extends Model
 
         $this->cacheStats();
         $this->extractEnemies();
+        $this->extractWeapons();
+        $this->extractWeaponsAvailable();
     }
 
     public function cacheStats(): void
@@ -73,6 +79,42 @@ class Map extends Model
 
             if ($thingType === 'monster') {
                 $this->enemies[] = $thing;
+            }
+        }
+
+        $this->enemiesCount = count($this->enemies);
+    }
+
+    private function extractWeapons(): void
+    {
+        foreach ($this->things as $thing) {
+            $thingType = $this->thingsLookup[$thing->type]['type'] ?? '';
+
+            if ($thingType === 'weapon') {
+                $this->weapons[] = $thing;
+            }
+        }
+
+        $this->weaponsCount = count($this->weapons);
+    }
+
+    private function extractWeaponsAvailable(): void
+    {
+        $weaponCount = [];
+
+        foreach ($this->weapons as $weapon)
+        {
+            $weaponCount[$weapon->type] = $weaponCount[$weapon->type] ?? 0 + 1;
+        }
+
+        dd($this->name, $this->weapons);
+
+        foreach ($this->things as $thingID => $thing) {
+            $weaponName = $this->thingsLookup[$thing->type]['name'] ?? '';
+            $thingType = $this->thingsLookup[$thing->type]['type'] ?? '';
+
+            if ($thingType === 'weapon') {
+                $this->weaponsAvailable[$weaponName] = $weaponCount[$thing->type] ?? 0;
             }
         }
     }

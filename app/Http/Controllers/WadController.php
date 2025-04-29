@@ -10,7 +10,7 @@ class WadController extends Controller
     public function analyze()
     {
         $wad = new Wad(storage_path('wads/doom2.wad'));
-        dd($wad->maps[0]);
+        dd($wad->maps[0]->weaponsAvailable);
         foreach ($wad->lumps as $lump)
         {
             echo $lump->name."<br />";

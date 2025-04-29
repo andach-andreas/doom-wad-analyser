@@ -18,7 +18,9 @@ id,name,type,spawnhealth
 2002,Chaingun,weapon,0
 2003,Rocket Launcher,weapon,0
 2004,Plasma Gun,weapon,0
-2005,BFG9000,weapon,0
+2005,Chainsaw,weapon,0
+2006,BFG9000,weapon,0
+82,Super Shotgun,weapon,0
 2010,Clip,ammo,0
 2011,4 Shotgun Shells,ammo,0
 2012,Rocket,ammo,0
