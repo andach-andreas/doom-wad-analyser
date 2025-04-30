@@ -8,9 +8,11 @@ class Lump extends Model
 {
     protected $fillable = ['wad_id', 'name', 'offset', 'size', 'data'];
 
-    public function map()
+    public function maps()
     {
-        return $this->hasOne(Map::class);
+        return $this->belongsToMany(Map::class, 'link_lumps_maps')
+            ->withPivot('is_header') // Include the is_header flag in the pivot table
+            ->withTimestamps();
     }
 
     public function wad()

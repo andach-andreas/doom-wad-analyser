@@ -9,7 +9,6 @@ class Map extends Model
     public array $enemies = [];
     public int $enemiesCount = 0;
     public int $lumpIndex;
-    public string $name;
     public array $lumps = [];
     public array $sectors = [];
     public array $stats = [];
@@ -18,23 +17,13 @@ class Map extends Model
     public array $weaponsAvailable = [];
     public int $weaponsCount = 0;
 
-    public function __construct(int $lumpIndex, array $allLumps)
+    protected $fillable = ['music_lump_id', 'next_level_map_id', 'next_secret_level_map_id', 'wad_id', 'name'];
+
+    public function lumps()
     {
-        $this->lumpIndex = $lumpIndex;
-        $this->name = trim($allLumps[$lumpIndex]->name);
-
-        $this->parseAssociatedLumps($allLumps);
-        $this->parseThings();
-
-        $this->cacheStats();
-        $this->extractEnemies();
-        $this->extractWeapons();
-        $this->extractWeaponsAvailable();
-    }
-
-    public function lump()
-    {
-        return $this->belongsTo(Lump::class);
+        return $this->belongsToMany(Lump::class, 'link_lumps_maps')
+            ->withPivot('is_header') // Include the is_header flag in the pivot table
+            ->withTimestamps();
     }
 
     public function music()

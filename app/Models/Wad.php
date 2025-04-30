@@ -93,11 +93,39 @@ class Wad extends Model
 
     private function insertIntoDatabaseMaps()
     {
-        foreach ($this->lumps as $lump)
-        {
-            if ($lump->isMap())
-            {
-                $lump->map()->create(['name' => $lump->name]);
+        $validLumps = [
+            'THINGS',
+            'LINEDEFS',
+            'SIDEDEFS',
+            'VERTEXES',
+            'SEGS',
+            'SSECTORS',
+            'NODES',
+            'SECTORS',
+        ];
+
+        $isProcessingMap = false;
+        $map = null;
+
+        foreach ($this->lumps as $lump) {
+            if ($lump->isMap()) {
+                $map = Map::create([
+                    'wad_id' => $this->id,
+                    'name' => $lump->name,
+                ]);
+                $map->lumps()->attach($lump->id, ['is_header' => true]);
+
+                $isProcessingMap = true;
+
+                continue;
+            }
+
+            if ($isProcessingMap) {
+                if (in_array($lump->name, $validLumps)) {
+                    $map->lumps()->attach($lump->id, ['is_header' => false]);
+                } else {
+                    $isProcessingMap = false;
+                }
             }
         }
     }

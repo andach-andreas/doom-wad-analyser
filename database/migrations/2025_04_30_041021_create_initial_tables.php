@@ -28,11 +28,19 @@ return new class extends Migration
 
         Schema::create('maps', function (Blueprint $table) {
             $table->id();
-            $table->integer('lump_id');
             $table->integer('music_lump_id')->nullable();
             $table->integer('next_level_map_id')->nullable();
             $table->integer('next_secret_level_map_id')->nullable();
+            $table->integer('wad_id');
             $table->string('name');
+            $table->integer('linedefs')->default(0);
+            $table->integer('sidedefs')->default(0);
+            $table->integer('vertexes')->default(0);
+            $table->integer('segs')->default(0);
+            $table->integer('ssectors')->default(0);
+            $table->integer('nodes')->default(0);
+            $table->integer('sectors')->default(0);
+            $table->integer('secretSectors')->default(0);
             $table->timestamps();
         });
 
@@ -82,6 +90,14 @@ return new class extends Migration
             $table->boolean('flag_skill1')->default(false);
             $table->boolean('flag_skill2')->default(false);
             $table->boolean('flag_skill3')->default(false);
+            $table->timestamps();
+        });
+
+        Schema::create('link_lumps_maps', function (Blueprint $table) {
+            $table->id();
+            $table->integer('map_id');  // Foreign key for maps
+            $table->integer('lump_id'); // Foreign key for lumps
+            $table->boolean('is_header')->default(false); // Indicates if this lump is the header
             $table->timestamps();
         });
 
