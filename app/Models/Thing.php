@@ -6,41 +6,38 @@ use Illuminate\Database\Eloquent\Model;
 
 class Thing extends Model
 {
-    public int $angle;
-    public array $flagInfo;
-    public int $flags;
-    public int $type;
-    public int $x;
-    public int $y;
+    protected $fillable = [
+        'map_id',
+        'thing_type_id',
+        'wad_id',
+        'angle',
+        'flags',
+        'type',
+        'x',
+        'y',
+        'flag_ambush',
+        'flag_coop',
+        'flag_deathmatch',
+        'flag_friendly',
+        'flag_multiplayer',
+        'flag_single',
+        'flag_skill1',
+        'flag_skill2',
+        'flag_skill3',
+    ];
 
-    public function __construct(int $x, int $y, int $angle, int $type, int $flags)
+    public function map()
     {
-        $this->x = $x;
-        $this->y = $y;
-        $this->angle = $angle;
-        $this->type = $type;
-        $this->flags = $flags;
-
-        $this->parseFlags();
+        return $this->belongsTo(Map::class, 'level_id');
     }
 
-    public static function fromBinary(string $data): self
+    public function thingType()
     {
-        [$x, $y, $angle, $type, $flags] = array_values(unpack('sx/sy/vangle/vtype/vflags', $data));
-        return new self($x, $y, $angle, $type, $flags);
+        return $this->belongsTo(ThingType::class);
     }
 
-    private function parseFlags(): void
+    public function wad()
     {
-        $this->flagInfo = [
-            'easy'          => (bool)($this->flags & 0x0001),
-            'medium'        => (bool)($this->flags & 0x0002),
-            'hard'          => (bool)($this->flags & 0x0004),
-            'ambush'        => (bool)($this->flags & 0x0008),
-            'multiplayer'   => (bool)($this->flags & 0x0010),
-            'notDeathmatch' => (bool)($this->flags & 0x0020),
-            'notCoop'       => (bool)($this->flags & 0x0040),
-            'friendly'      => (bool)($this->flags & 0x0080),
-        ];
+        return $this->belongsTo(Wad::class);
     }
 }

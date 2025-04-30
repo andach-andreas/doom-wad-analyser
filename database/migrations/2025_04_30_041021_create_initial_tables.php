@@ -59,7 +59,7 @@ return new class extends Migration
 
         Schema::create('things', function (Blueprint $table) {
             $table->id();
-            $table->integer('level_id')->nullable();
+            $table->integer('map_id');
             $table->integer('thing_type_id');
             $table->integer('wad_id');
             $table->integer('angle');
@@ -67,6 +67,15 @@ return new class extends Migration
             $table->integer('type');
             $table->integer('x');
             $table->integer('y');
+            $table->boolean('flag_ambush')->default(false);
+            $table->boolean('flag_coop')->default(false);
+            $table->boolean('flag_deathmatch')->default(false);
+            $table->boolean('flag_friendly')->default(false);
+            $table->boolean('flag_multiplayer')->default(false);
+            $table->boolean('flag_single')->default(false);
+            $table->boolean('flag_skill1')->default(false);
+            $table->boolean('flag_skill2')->default(false);
+            $table->boolean('flag_skill3')->default(false);
             $table->timestamps();
         });
 
@@ -87,22 +96,6 @@ return new class extends Migration
             $table->string('filename');
             $table->string('name');
             $table->integer('comp_level_id')->nullable();
-            $table->timestamps();
-        });
-
-        Schema::create('link_levels_things', function (Blueprint $table) {
-            $table->id();
-            $table->integer('level_id');
-            $table->integer('thing_id');
-            $table->boolean('flag_ambush')->default(false);
-            $table->boolean('flag_coop')->default(false);
-            $table->boolean('flag_deathmatch')->default(false);
-            $table->boolean('flag_friendly')->default(false);
-            $table->boolean('flag_multiplayer')->default(false);
-            $table->boolean('flag_single')->default(false);
-            $table->boolean('flag_skill1')->default(false);
-            $table->boolean('flag_skill2')->default(false);
-            $table->boolean('flag_skill3')->default(false);
             $table->timestamps();
         });
 

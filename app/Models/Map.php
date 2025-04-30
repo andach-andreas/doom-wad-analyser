@@ -43,6 +43,11 @@ class Map extends Model
         return $this->hasMany(Sector::class);
     }
 
+    public function things()
+    {
+        return $this->hasMany(Thing::class);
+    }
+
     public function insertIntoDatabase()
     {
         $this->insertIntoDatabaseStats();
@@ -98,6 +103,9 @@ class Map extends Model
                     $this->sectors = $this->countLumpEntries($lump, 26);
                     $this->insertIntoDatabaseSectors($lump);
                     break;
+                case 'THINGS' :
+                    $this->insertIntoDatabaseThings($lump);
+                    break;
             }
         }
 
@@ -105,6 +113,45 @@ class Map extends Model
         $this->secretSectors = $this->sectors()->secret()->count();
 
         $this->save();
+    }
+
+    protected function insertIntoDatabaseThings(Lump $lump): void
+    {
+        if (!$lump || !$lump->data || $lump->name !== 'THINGS') return;
+
+        $data = $lump->data;
+        $entrySize = 10;
+        $numThings = intdiv(strlen($data), $entrySize);
+
+        for ($i = 0; $i < $numThings; $i++) {
+            $offset = $i * $entrySize;
+            $thingData = substr($data, $offset, $entrySize);
+            $unpacked = unpack('sx/sy/vangle/vtype/vflags', $thingData);
+
+//            $thingTypeId = ThingType::where('type', $unpacked['type'])
+//                ->where('wad_id', $map->wad_id)
+//                ->value('id');
+
+            Thing::create([
+                'map_id'           => $this->id,
+                'wad_id'           => $this->wad_id,
+                'thing_type_id'    => 0,
+                'x'                => $unpacked['x'],
+                'y'                => $unpacked['y'],
+                'angle'            => $unpacked['angle'],
+                'type'             => $unpacked['type'],
+                'flags'            => $unpacked['flags'],
+                'flag_ambush'      => (bool)($unpacked['flags'] & 0x0004),
+                'flag_single'      => (bool)($unpacked['flags'] & 0x0001),
+                'flag_coop'        => (bool)($unpacked['flags'] & 0x0002),
+                'flag_deathmatch'  => (bool)($unpacked['flags'] & 0x0008),
+                'flag_multiplayer' => (bool)($unpacked['flags'] & 0x0010),
+                'flag_friendly'    => (bool)($unpacked['flags'] & 0x0100),
+                'flag_skill1'      => (bool)($unpacked['flags'] & 0x0001),
+                'flag_skill2'      => (bool)($unpacked['flags'] & 0x0002),
+                'flag_skill3'      => (bool)($unpacked['flags'] & 0x0004),
+            ]);
+        }
     }
 
     protected function countLumpEntries(Lump $lump, int $entrySize): int
