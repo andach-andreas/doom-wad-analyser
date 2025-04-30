@@ -6,37 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class Lump extends Model
 {
-    public $name;
-    public $offset;
-    public $size;
-    public $data;
+    protected $fillable = ['wad_id', 'name', 'offset', 'size', 'data'];
 
-    public function __construct(string $name, int $offset, int $size, $data = '')
+    public function map()
     {
-        $this->name = trim(strtoupper($name));
-        $this->offset = $offset;
-        $this->size = $size;
-        $this->data = $data;
+        return $this->hasOne(Map::class);
     }
 
-    public function getName(): string
+    public function wad()
     {
-        return $this->name;
-    }
-
-    public function getOffset(): int
-    {
-        return $this->offset;
-    }
-
-    public function getData(): string
-    {
-        return $this->data;
-    }
-
-    public function getSize(): int
-    {
-        return $this->size;
+        return $this->belongsTo(Wad::class);
     }
 
     public function returnDehackedArray(): array

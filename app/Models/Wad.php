@@ -9,12 +9,11 @@ class Wad extends Model
     public string $type;
     public int $numLumps;
     public int $dirOffset;
-
-    public array $lumps = [];
     public array $maps = [];
+
+    public array $parsedLumps = [];
     public string $path;
     public array $skippedLumps = [];
-    public array $thingsLookup = [];
 
     public function __construct(string $filePath)
     {
@@ -23,41 +22,43 @@ class Wad extends Model
         }
 
         $this->path = $filePath;
-        $this->loadThingsLookupFromCSV(storage_path('things-database.csv'));
-        $this->parse();
-        $this->createMaps();
+    }
+
+    public function compLevel()
+    {
+        return $this->belongsTo(CompLevel::class);
+    }
+
+    public function lumps()
+    {
+        return $this->hasMany(Lump::class);
+    }
+
+    public function maps()
+    {
+        return $this->hasManyThrough(Map::class, Lump::class);
     }
 
     private function createMaps()
     {
         $mapRegex = '/^(E[1-4]M[1-9]|MAP[0-9]{2})$/';
 
-        foreach ($this->lumps as $index => $lump) {
+        foreach ($this->parsedLumps as $index => $lump) {
             if (preg_match($mapRegex, $lump->name)) {
-                $map = new Map($index, $this->lumps, $this->thingsLookup);
+                $map = new Map($index, $this->parsedLumps);
                 $this->maps[] = $map;
             }
         }
     }
 
-    protected function loadThingsLookupFromCSV(string $path): void
+    public function insertIntoDatabase()
     {
-        if (!file_exists($path)) {
-            throw new \RuntimeException("Things database CSV not found at: $path");
-        }
+        $this->filename = basename($this->path);
+        $this->name = basename($this->path);
+        $this->save();
 
-        if (($handle = fopen($path, 'r')) !== false) {
-            $header = fgetcsv($handle);
-            while (($row = fgetcsv($handle)) !== false) {
-                [$id, $name, $type, $spawnhealth] = $row;
-                $this->thingsLookup[(int)$id] = [
-                    'name' => $name,
-                    'type' => $type,
-                    'spawnhealth' => (int)$spawnhealth,
-                ];
-            }
-            fclose($handle);
-        }
+        $this->parse();
+        $this->createMaps();
     }
 
     private function parse(): void
@@ -89,7 +90,12 @@ class Wad extends Model
                 fseek($handle, $curPos); // return to directory read position
             }
 
-            $this->lumps[] = new Lump($name, $offset, $size, $data);
+            $this->lumps()->create([
+                'name' => $name,
+                'offset' => $offset,
+                'size' => $size,
+                'data' => $data,
+            ]);
         }
 
         fclose($handle);

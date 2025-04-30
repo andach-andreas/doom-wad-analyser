@@ -14,16 +14,14 @@ class Map extends Model
     public array $sectors = [];
     public array $stats = [];
     public array $things = [];
-    public array $thingsLookup = [];
     public array $weapons = [];
     public array $weaponsAvailable = [];
     public int $weaponsCount = 0;
 
-    public function __construct(int $lumpIndex, array $allLumps, array $thingsLookup)
+    public function __construct(int $lumpIndex, array $allLumps)
     {
         $this->lumpIndex = $lumpIndex;
         $this->name = trim($allLumps[$lumpIndex]->name);
-        $this->thingsLookup = $thingsLookup;
 
         $this->parseAssociatedLumps($allLumps);
         $this->parseThings();
@@ -32,6 +30,26 @@ class Map extends Model
         $this->extractEnemies();
         $this->extractWeapons();
         $this->extractWeaponsAvailable();
+    }
+
+    public function lump()
+    {
+        return $this->belongsTo(Lump::class);
+    }
+
+    public function music()
+    {
+        return $this->belongsTo(Lump::class, 'music_lump_id');
+    }
+
+    public function nextLevel()
+    {
+        return $this->belongsTo(Map::class, 'next_level_map_id');
+    }
+
+    public function nextSecretLevel()
+    {
+        return $this->belongsTo(Map::class, 'next_secret_level_map_id');
     }
 
     public function cacheStats(): void
@@ -74,6 +92,7 @@ class Map extends Model
 
     private function extractEnemies(): void
     {
+        die('rewrite extractEnemies');
         foreach ($this->things as $thing) {
             $thingType = $this->thingsLookup[$thing->type]['type'] ?? '';
 
@@ -87,6 +106,7 @@ class Map extends Model
 
     private function extractWeapons(): void
     {
+        die('rewrite extractWeapons');
         foreach ($this->things as $thing) {
             $thingType = $this->thingsLookup[$thing->type]['type'] ?? '';
 
@@ -100,6 +120,7 @@ class Map extends Model
 
     private function extractWeaponsAvailable(): void
     {
+        die('rewrite extractWeaponsAvailable');
         $weaponCount = [];
 
         foreach ($this->weapons as $weapon)

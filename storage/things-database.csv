@@ -1,4 +1,4 @@
-id,name,type,spawnhealth
+type,name,category,spawnhealth
 3001,Former Human,monster,20
 3002,Former Sergeant,monster,30
 3003,Imp,monster,60
@@ -31,6 +31,5 @@ id,name,type,spawnhealth
 2022,Soulsphere,powerup,0
 2026,Green Armor,armor,0
 2019,Blue Armor,armor,0
-82,Commander Keen,decoration,0
-83,Hanging Man,decoration,0
+41,Evil Eye,decoration,0
 1,Player 1 Start,Player Start,0
