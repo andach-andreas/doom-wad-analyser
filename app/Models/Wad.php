@@ -9,20 +9,10 @@ class Wad extends Model
     public string $type;
     public int $numLumps;
     public int $dirOffset;
-    public array $maps = [];
 
     public array $parsedLumps = [];
     public string $path;
     public array $skippedLumps = [];
-
-    public function __construct(string $filePath)
-    {
-        if (!file_exists($filePath)) {
-            throw new \InvalidArgumentException("WAD file not found: $filePath");
-        }
-
-        $this->path = $filePath;
-    }
 
     public function compLevel()
     {
@@ -36,17 +26,24 @@ class Wad extends Model
 
     public function maps()
     {
-        return $this->hasManyThrough(Map::class, Lump::class);
+        return $this->hasMany(Map::class, 'wad_id');
     }
 
-    public function insertIntoDatabase()
+    public function insertIntoDatabase(string $filePath)
     {
-        $this->filename = basename($this->path);
-        $this->name = basename($this->path);
+        $this->path = $filePath;
+        $this->filename = basename($filePath);
+        $this->name = basename($filePath);
         $this->save();
 
         $this->insertIntoDatabaseLumps();
         $this->insertIntoDatabaseMaps();
+
+        $this->load('maps');
+        foreach ($this->maps as $map)
+        {
+            $map->insertIntoDatabase();
+        }
     }
 
     private function insertIntoDatabaseLumps(): void

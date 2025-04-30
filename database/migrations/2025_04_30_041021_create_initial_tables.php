@@ -44,6 +44,19 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        Schema::create('sectors', function (Blueprint $table) {
+            $table->id();
+            $table->integer('map_id');
+            $table->integer('floor_height');
+            $table->integer('ceiling_height');
+            $table->string('floor_texture');
+            $table->string('ceiling_texture');
+            $table->integer('light_level');
+            $table->integer('type');
+            $table->integer('tag');
+            $table->timestamps();
+        });
+
         Schema::create('things', function (Blueprint $table) {
             $table->id();
             $table->integer('level_id')->nullable();

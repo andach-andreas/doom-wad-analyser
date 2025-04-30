@@ -9,9 +9,6 @@ class Map extends Model
     public array $enemies = [];
     public int $enemiesCount = 0;
     public int $lumpIndex;
-    public array $lumps = [];
-    public array $sectors = [];
-    public array $stats = [];
     public array $things = [];
     public array $weapons = [];
     public array $weaponsAvailable = [];
@@ -41,42 +38,78 @@ class Map extends Model
         return $this->belongsTo(Map::class, 'next_secret_level_map_id');
     }
 
-    public function cacheStats(): void
+    public function sectors()
     {
-        $this->stats = [
-            'linedefs'   => $this->countLumpEntries('LINEDEFS', 14),
-            'sidedefs'   => $this->countLumpEntries('SIDEDEFS', 30),
-            'vertexes'   => $this->countLumpEntries('VERTEXES', 4),
-            'segs'       => $this->countLumpEntries('SEGS', 12),
-            'ssectors'   => $this->countLumpEntries('SSECTORS', 4),
-            'nodes'      => $this->countLumpEntries('NODES', 28),
-            'sectors'    => $this->countLumpEntries('SECTORS', 26),
-            'secretSectors' => $this->countSecretSectors(),
-        ];
+        return $this->hasMany(Sector::class);
     }
 
-    protected function countLumpEntries(string $lumpName, int $entrySize): int
+    public function insertIntoDatabase()
     {
-        if (!isset($this->lumps[$lumpName])) return 0;
-        return intdiv(strlen($this->lumps[$lumpName]->data), $entrySize);
+        $this->insertIntoDatabaseStats();
     }
 
-    protected function countSecretSectors(): int
+    public function insertIntoDatabaseSectors(Lump $lump)
     {
-        if (!isset($this->lumps['SECTORS'])) return 0;
-
-        $data = $this->lumps['SECTORS']->data;
-        $count = 0;
+        $data = $lump->data;
         $entrySize = 26;
-        $numSectors = intdiv(strlen($data), $entrySize);
+        $num = intdiv(strlen($data), $entrySize);
 
-        for ($i = 0; $i < $numSectors; $i++) {
+        for ($i = 0; $i < $num; $i++) {
             $offset = $i * $entrySize;
-            $flags = unpack('v', substr($data, $offset + 20, 2))[1]; // Flags are at offset 20 in the sector struct
-            if ($flags & 0x8000) $count++;
+            $entry = substr($data, $offset, $entrySize);
+
+            $fields = unpack('vfloor_height/vceiling_height/a8floor_texture/a8ceiling_texture/vlight_level/vtype/vtag', $entry);
+
+            $this->sectors()->create([
+                'floor_height'    => $fields['floor_height'],
+                'ceiling_height'  => $fields['ceiling_height'],
+                'floor_texture'   => trim($fields['floor_texture']),
+                'ceiling_texture' => trim($fields['ceiling_texture']),
+                'light_level'     => $fields['light_level'],
+                'type'            => $fields['type'],
+                'tag'             => $fields['tag'],
+            ]);
+        }
+    }
+
+    public function insertIntoDatabaseStats()
+    {
+        foreach ($this->lumps as $lump) {
+            switch ($lump->name) {
+                case 'LINEDEFS':
+                    $this->linedefs = $this->countLumpEntries($lump, 14);
+                    break;
+                case 'SIDEDEFS':
+                    $this->sidedefs = $this->countLumpEntries($lump, 30);
+                    break;
+                case 'VERTEXES':
+                    $this->vertexes = $this->countLumpEntries($lump, 4);
+                    break;
+                case 'SEGS':
+                    $this->segs = $this->countLumpEntries($lump, 12);
+                    break;
+                case 'SSECTORS':
+                    $this->ssectors = $this->countLumpEntries($lump, 4);
+                    break;
+                case 'NODES':
+                    $this->nodes = $this->countLumpEntries($lump, 28);
+                    break;
+                case 'SECTORS':
+                    $this->sectors = $this->countLumpEntries($lump, 26);
+                    $this->insertIntoDatabaseSectors($lump);
+                    break;
+            }
         }
 
-        return $count;
+        $this->load('sectors');
+        $this->secretSectors = $this->sectors()->secret()->count();
+
+        $this->save();
+    }
+
+    protected function countLumpEntries(Lump $lump, int $entrySize): int
+    {
+        return intdiv(strlen($lump->data), $entrySize);
     }
 
     private function extractEnemies(): void

@@ -9,7 +9,7 @@ class WadController extends Controller
 {
     public function analyze()
     {
-        $wad = new Wad(storage_path('wads/doom2.wad'));
-        $wad->insertIntoDatabase();
+        $wad = new Wad();
+        $wad->insertIntoDatabase(storage_path('wads/doom2.wad'));
     }
 }
