@@ -82,10 +82,11 @@ return new class extends Migration
         Schema::create('types', function (Blueprint $table) {
             $table->id();
             $table->integer('type');
-            $table->integer('spawn_health')->default(0);
             $table->integer('wad_id')->nullable();
-            $table->string('category');
             $table->string('name');
+            $table->string('category');
+            $table->string('port')->nullable();
+            $table->integer('spawn_health')->default(0);
             $table->timestamps();
 
             $table->unique(['type', 'wad_id']);

@@ -28,6 +28,7 @@ class DatabaseSeeder extends Seeder
                 'category'      => $data['category'],
                 'spawn_health'  => (int) $data['spawnhealth'],
                 'wad_id'        => !empty($data['wad_id']) ? (int) $data['wad_id'] : null,
+                'port'          => $data['port'],
             ]);
         }
 

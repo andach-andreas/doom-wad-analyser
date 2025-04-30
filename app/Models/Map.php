@@ -128,10 +128,6 @@ class Map extends Model
             $thingData = substr($data, $offset, $entrySize);
             $unpacked = unpack('sx/sy/vangle/vtype/vflags', $thingData);
 
-//            $thingTypeId = ThingType::where('type', $unpacked['type'])
-//                ->where('wad_id', $map->wad_id)
-//                ->value('id');
-
             Thing::create([
                 'map_id'           => $this->id,
                 'wad_id'           => $this->wad_id,
