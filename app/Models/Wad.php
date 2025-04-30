@@ -39,36 +39,26 @@ class Wad extends Model
         return $this->hasManyThrough(Map::class, Lump::class);
     }
 
-    private function createMaps()
-    {
-        $mapRegex = '/^(E[1-4]M[1-9]|MAP[0-9]{2})$/';
-
-        foreach ($this->parsedLumps as $index => $lump) {
-            if (preg_match($mapRegex, $lump->name)) {
-                $map = new Map($index, $this->parsedLumps);
-                $this->maps[] = $map;
-            }
-        }
-    }
-
     public function insertIntoDatabase()
     {
         $this->filename = basename($this->path);
         $this->name = basename($this->path);
         $this->save();
 
-        $this->parse();
-        $this->createMaps();
+        $this->insertIntoDatabaseLumps();
+        $this->insertIntoDatabaseMaps();
     }
 
-    private function parse(): void
+    private function insertIntoDatabaseLumps(): void
     {
         $handle = fopen($this->path, 'rb');
         if (!$handle) {
             throw new \Exception("Unable to open WAD file: {$this->path}");
         }
 
-        $this->parseHeader($handle);
+        // Read the header to get the number of lumps and the directory offset
+        $header = fread($handle, 12);
+        [$this->type, $this->numLumps, $this->dirOffset] = array_values(unpack('a4type/VnumLumps/VdirOffset', $header));
 
         // Move to the directory offset to read the lump entries
         fseek($handle, $this->dirOffset);
@@ -101,10 +91,14 @@ class Wad extends Model
         fclose($handle);
     }
 
-    private function parseHeader($handle): void
+    private function insertIntoDatabaseMaps()
     {
-        // Read the header to get the number of lumps and the directory offset
-        $header = fread($handle, 12);
-        [$this->type, $this->numLumps, $this->dirOffset] = array_values(unpack('a4type/VnumLumps/VdirOffset', $header));
+        foreach ($this->lumps as $lump)
+        {
+            if ($lump->isMap())
+            {
+                $lump->map()->create(['name' => $lump->name]);
+            }
+        }
     }
 }

@@ -18,6 +18,16 @@ class Lump extends Model
         return $this->belongsTo(Wad::class);
     }
 
+    public function createMap()
+    {
+
+    }
+
+    public function isMap()
+    {
+        return preg_match('/^(E[1-4]M[1-9]|MAP[0-9]{2})$/', $this->name);
+    }
+
     public function returnDehackedArray(): array
     {
         // Only process if the lump is DEHACKED
