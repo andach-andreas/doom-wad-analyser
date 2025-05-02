@@ -5,7 +5,8 @@
 /public/storage
 /storage/*.key
 /storage/pail
-/storage/wads/DOOM2.WAD
+/storage/levels
+/storage/wads
 /vendor
 .env
 .env.backup
