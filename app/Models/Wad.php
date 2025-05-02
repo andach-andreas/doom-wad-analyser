@@ -29,6 +29,20 @@ class Wad extends Model
         return $this->hasMany(Map::class, 'wad_id');
     }
 
+    public function types()
+    {
+        return $this->hasMany(Type::class);
+    }
+
+    public function allTypes()
+    {
+        return Type::whereNull('wad_id')
+            ->orWhere('wad_id', $this->id)
+            ->orderByRaw('wad_id IS NULL') // So overrides appear after for possible resolution
+            ->get()
+            ->unique('type'); // Keep overridden ones
+    }
+
     public function insertIntoDatabase(string $filePath)
     {
         $this->path = $filePath;
