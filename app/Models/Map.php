@@ -150,6 +150,74 @@ class Map extends Model
         }
     }
 
+    public function renderTopDownMapImage(string $outputPath): void
+    {
+        $vertexLump = $this->lumps()->where('name', 'VERTEXES')->first();
+        $linedefLump = $this->lumps()->where('name', 'LINEDEFS')->first();
+
+        if (!$vertexLump || !$linedefLump) return;
+
+        $vertices = [];
+        $entrySize = 4;
+        $data = $vertexLump->data;
+        $numEntries = intdiv(strlen($data), $entrySize);
+
+        $minX = $minY = PHP_INT_MAX;
+        $maxX = $maxY = PHP_INT_MIN;
+
+        // Parse vertices
+        for ($i = 0; $i < $numEntries; $i++) {
+            $offset = $i * $entrySize;
+            $x = unpack('s', substr($data, $offset, 2))[1];
+            $y = unpack('s', substr($data, $offset + 2, 2))[1];
+            $vertices[$i] = ['x' => $x, 'y' => $y];
+            $minX = min($minX, $x);
+            $minY = min($minY, $y);
+            $maxX = max($maxX, $x);
+            $maxY = max($maxY, $y);
+        }
+
+        $width = 800;
+        $height = 800;
+
+        $scale = min($width / ($maxX - $minX + 1), $height / ($maxY - $minY + 1)) * 0.9;
+        $offsetX = $width / 2 - ($minX + $maxX) * $scale / 2;
+        $offsetY = $height / 2 + ($minY + $maxY) * $scale / 2;
+
+        $img = imagecreatetruecolor($width, $height);
+        $bg = imagecolorallocate($img, 0, 0, 0);
+        $fg = imagecolorallocate($img, 255, 255, 255);
+        imagefill($img, 0, 0, $bg);
+
+        // Parse linedefs
+        $entrySize = 14;
+        $data = $linedefLump->data;
+        $numEntries = intdiv(strlen($data), $entrySize);
+
+        for ($i = 0; $i < $numEntries; $i++) {
+            $offset = $i * $entrySize;
+            $v1 = unpack('v', substr($data, $offset, 2))[1];
+            $v2 = unpack('v', substr($data, $offset + 2, 2))[1];
+
+            if (!isset($vertices[$v1]) || !isset($vertices[$v2])) continue;
+
+            [$x1, $y1] = [$vertices[$v1]['x'], $vertices[$v1]['y']];
+            [$x2, $y2] = [$vertices[$v2]['x'], $vertices[$v2]['y']];
+
+            // Transform and draw
+            $sx1 = intval($x1 * $scale + $offsetX);
+            $sy1 = intval(-$y1 * $scale + $offsetY);
+            $sx2 = intval($x2 * $scale + $offsetX);
+            $sy2 = intval(-$y2 * $scale + $offsetY);
+
+            imageline($img, $sx1, $sy1, $sx2, $sy2, $fg);
+        }
+
+        imagepng($img, $outputPath);
+        imagedestroy($img);
+    }
+
+
     protected function countLumpEntries(Lump $lump, int $entrySize): int
     {
         return intdiv(strlen($lump->data), $entrySize);
