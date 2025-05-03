@@ -9,12 +9,21 @@ class Map extends Model
     public array $enemies = [];
     public int $enemiesCount = 0;
     public int $lumpIndex;
-    public array $things = [];
+    private Lump $lumpLinedefs;
+    private Lump $lumpSectors;
+    private Lump $lumpSidedefs;
+    private Lump $lumpThings;
+    private Lump $lumpVertices;
     public array $weapons = [];
     public array $weaponsAvailable = [];
     public int $weaponsCount = 0;
 
     protected $fillable = ['music_lump_id', 'next_level_map_id', 'next_secret_level_map_id', 'wad_id', 'name'];
+
+    public function linedefs()
+    {
+        return $this->hasMany(Linedef::class);
+    }
 
     public function lumps()
     {
@@ -43,14 +52,63 @@ class Map extends Model
         return $this->hasMany(Sector::class);
     }
 
+    public function sidedefs()
+    {
+        return $this->hasMany(Sidedef::class);
+    }
+
     public function things()
     {
         return $this->hasMany(Thing::class);
     }
 
+    public function vertices()
+    {
+        return $this->hasMany(Vertex::class);
+    }
+
     public function insertIntoDatabase()
     {
         $this->insertIntoDatabaseStats();
+        $this->insertIntoDatabaseSectors($this->lumpSectors);
+        $this->insertIntoDatabaseVertices($this->lumpVertices);
+        $this->insertIntoDatabaseSidedefs($this->lumpSidedefs);
+        $this->insertIntoDatabaseLinedefs($this->lumpLinedefs);
+        $this->insertIntoDatabaseThings($this->lumpThings);
+    }
+
+    public function insertIntoDatabaseLinedefs(Lump $lump)
+    {
+        $data = $lump->data;
+        $entrySize = 14;
+        $num = intdiv(strlen($data), $entrySize);
+
+        // Preload vertices and sidedefs into lookup arrays
+        $vertices = $this->vertices()
+            ->get(['id', 'internal_id'])
+            ->keyBy('internal_id');
+
+        $sidedefs = $this->sidedefs()
+            ->get(['id', 'internal_id'])
+            ->keyBy('internal_id');
+
+        for ($i = 0; $i < $num; $i++) {
+            $offset = $i * $entrySize;
+            $entry = substr($data, $offset, $entrySize);
+
+            $fields = unpack('vstart_vertex/vend_vertex/vflags/vspecial/vtag/vfront_sidedef/vback_sidedef', $entry);
+
+            $this->linedefs()->create([
+                'internal_id'       => $i,
+                'start_vertex_id'   => $vertices[$fields['start_vertex']]->id ?? null,
+                'end_vertex_id'     => $vertices[$fields['end_vertex']]->id ?? null,
+                'flags'             => $fields['flags'],
+                'special'           => $fields['special'],
+                'tag'               => $fields['tag'],
+                'front_sidedef_id'  => $sidedefs[$fields['front_sidedef']]->id ?? null,
+                'back_sidedef_id'   => $sidedefs[$fields['back_sidedef']]->id ?? null,
+            ]);
+        }
     }
 
     public function insertIntoDatabaseSectors(Lump $lump)
@@ -66,6 +124,7 @@ class Map extends Model
             $fields = unpack('vfloor_height/vceiling_height/a8floor_texture/a8ceiling_texture/vlight_level/vtype/vtag', $entry);
 
             $this->sectors()->create([
+                'internal_id'     => $i,
                 'floor_height'    => $fields['floor_height'],
                 'ceiling_height'  => $fields['ceiling_height'],
                 'floor_texture'   => trim($fields['floor_texture']),
@@ -77,18 +136,50 @@ class Map extends Model
         }
     }
 
+    public function insertIntoDatabaseSidedefs(Lump $lump)
+    {
+        $data = $lump->data;
+        $entrySize = 30;
+        $num = intdiv(strlen($data), $entrySize);
+
+        // Preload sectors into lookup array
+        $sectors = $this->sectors()
+            ->get(['id', 'internal_id'])
+            ->keyBy('internal_id');
+
+        for ($i = 0; $i < $num; $i++) {
+            $offset = $i * $entrySize;
+            $entry = substr($data, $offset, $entrySize);
+
+            $fields = unpack('vx_offset/vy_offset/a8upper_texture/a8lower_texture/a8middle_texture/vsector_internal_id', $entry);
+
+            $this->sidedefs()->create([
+                'internal_id'     => $i,
+                'x_offset'        => $fields['x_offset'],
+                'y_offset'        => $fields['y_offset'],
+                'upper_texture'   => trim($fields['upper_texture']),
+                'lower_texture'   => trim($fields['lower_texture']),
+                'middle_texture'  => trim($fields['middle_texture']),
+                'sector_id'       => $sectors[$fields['sector_internal_id']]->id ?? null,
+            ]);
+        }
+    }
+
     public function insertIntoDatabaseStats()
     {
         foreach ($this->lumps as $lump) {
             switch ($lump->name) {
                 case 'LINEDEFS':
                     $this->linedefs = $this->countLumpEntries($lump, 14);
+                    $this->lumpLinedefs = $lump;
                     break;
                 case 'SIDEDEFS':
                     $this->sidedefs = $this->countLumpEntries($lump, 30);
+                    $this->lumpSidedefs = $lump;
                     break;
                 case 'VERTEXES':
                     $this->vertexes = $this->countLumpEntries($lump, 4);
+                    $this->lumpVertices = $lump;
                     break;
                 case 'SEGS':
                     $this->segs = $this->countLumpEntries($lump, 12);
@@ -101,10 +192,11 @@ class Map extends Model
                     break;
                 case 'SECTORS':
                     $this->sectors = $this->countLumpEntries($lump, 26);
-                    $this->insertIntoDatabaseSectors($lump);
+                    $this->lumpSectors = $lump;
                     break;
                 case 'THINGS' :
-                    $this->insertIntoDatabaseThings($lump);
+                    $this->things = $this->countLumpEntries($lump, 26);
+                    $this->lumpThings = $lump;
                     break;
             }
         }
@@ -146,6 +238,26 @@ class Map extends Model
                 'flag_skill1'      => (bool)($unpacked['flags'] & 0x0001),
                 'flag_skill2'      => (bool)($unpacked['flags'] & 0x0002),
                 'flag_skill3'      => (bool)($unpacked['flags'] & 0x0004),
+            ]);
+        }
+    }
+
+    public function insertIntoDatabaseVertices(Lump $lump)
+    {
+        $data = $lump->data;
+        $entrySize = 4;
+        $num = intdiv(strlen($data), $entrySize);
+
+        for ($i = 0; $i < $num; $i++) {
+            $offset = $i * $entrySize;
+            $entry = substr($data, $offset, $entrySize);
+
+            $fields = unpack('sx/sy', $entry);
+
+            $this->vertices()->create([
+                'internal_id' => $i,
+                'x' => $fields['x'],
+                'y' => $fields['y'],
             ]);
         }
     }
@@ -301,22 +413,6 @@ class Map extends Model
             } else {
                 break;
             }
-        }
-    }
-
-    public function parseThings()
-    {
-        $thingLump = $this->lumps['THINGS'] ?? null;
-
-        if (!$thingLump)
-        {
-            return;
-        }
-
-        for ($i = 0; $i < strlen($thingLump->data); $i += 10) {
-            $entry = substr($thingLump->data, $i, 10);
-            if (strlen($entry) < 10) continue;
-            $this->things[] = Thing::fromBinary($entry);
         }
     }
 }

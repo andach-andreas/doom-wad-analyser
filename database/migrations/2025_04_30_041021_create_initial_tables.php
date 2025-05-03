@@ -16,6 +16,22 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        Schema::create('linedefs', function (Blueprint $table) {
+            $table->id();
+            $table->integer('internal_id');
+            $table->integer('map_id');
+            $table->integer('start_vertex_id');
+            $table->integer('end_vertex_id');
+            $table->integer('flags');
+            $table->integer('special');
+            $table->integer('tag');
+            $table->integer('front_sidedef_id');
+            $table->integer('back_sidedef_id')->nullable();
+            $table->timestamps();
+
+            $table->unique(['map_id', 'internal_id']);
+        });
+
         Schema::create('lumps', function (Blueprint $table) {
             $table->id();
             $table->integer('wad_id');
@@ -33,6 +49,7 @@ return new class extends Migration
             $table->integer('next_secret_level_map_id')->nullable();
             $table->integer('wad_id');
             $table->string('name');
+            $table->integer('things')->default(0);
             $table->integer('linedefs')->default(0);
             $table->integer('sidedefs')->default(0);
             $table->integer('vertexes')->default(0);
@@ -46,6 +63,7 @@ return new class extends Migration
 
         Schema::create('sectors', function (Blueprint $table) {
             $table->id();
+            $table->integer('internal_id');
             $table->integer('map_id');
             $table->integer('floor_height');
             $table->integer('ceiling_height');
@@ -55,6 +73,23 @@ return new class extends Migration
             $table->integer('type');
             $table->integer('tag');
             $table->timestamps();
+
+            $table->unique(['map_id', 'internal_id']);
+        });
+
+        Schema::create('sidedefs', function (Blueprint $table) {
+            $table->id();
+            $table->integer('internal_id');
+            $table->integer('map_id');
+            $table->integer('x_offset');
+            $table->integer('y_offset');
+            $table->string('upper_texture');
+            $table->string('lower_texture');
+            $table->string('middle_texture');
+            $table->integer('sector_id');
+            $table->timestamps();
+
+            $table->unique(['map_id', 'internal_id']);
         });
 
         Schema::create('things', function (Blueprint $table) {
@@ -90,6 +125,17 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['type', 'wad_id']);
+        });
+
+        Schema::create('vertices', function (Blueprint $table) {
+            $table->id();
+            $table->integer('internal_id');
+            $table->integer('map_id');
+            $table->integer('x');
+            $table->integer('y');
+            $table->timestamps();
+
+            $table->unique(['map_id', 'internal_id']);
         });
 
         Schema::create('wads', function (Blueprint $table) {

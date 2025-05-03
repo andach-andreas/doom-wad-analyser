@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Sector extends Model
 {
     protected $fillable = [
-        'map_id', 'floor_height', 'ceiling_height',
+        'internal_id', 'map_id', 'floor_height', 'ceiling_height',
         'floor_texture', 'ceiling_texture', 'light_level',
         'type', 'tag'
     ];
