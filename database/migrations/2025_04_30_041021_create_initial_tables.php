@@ -216,6 +216,17 @@ return new class extends Migration
             ['level' => 17,  'name' => 'Engine defaults (current version)'],
             ['level' => 21,  'name' => 'MBF21'],
         ]);
+
+        DB::table('ports')->insert([
+            ['name' => 'Chocolate Doom'],
+            ['name' => 'Crispy Doom'],
+            ['name' => 'DOOM Retro'],
+            ['name' => 'DSDA-Doom'],
+            ['name' => 'Eternity Engine'],
+            ['name' => 'GZDoom'],
+            ['name' => 'PrBoom+'],
+            ['name' => 'Zandronum'],
+        ]);
     }
 
     public function down(): void
