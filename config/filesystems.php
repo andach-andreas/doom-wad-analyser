@@ -60,6 +60,21 @@ return [
             'report' => false,
         ],
 
+        'dsda' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private/dsda'),
+            'serve' => true,
+            'throw' => false,
+            'report' => false,
+        ],
+
+        'wads' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private/wads'),
+            'serve' => true,
+            'throw' => false,
+            'report' => false,
+        ],
     ],
 
     /*
