@@ -16,6 +16,16 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        Schema::create('installs', function (Blueprint $table) {
+            $table->id();
+            $table->integer('port_id');
+            $table->string('version');
+            $table->string('path');
+            $table->timestamps();
+
+            $table->unique(['port_id', 'version']);
+        });
+
         Schema::create('linedefs', function (Blueprint $table) {
             $table->id();
             $table->integer('internal_id');
@@ -58,6 +68,12 @@ return new class extends Migration
             $table->integer('nodes')->default(0);
             $table->integer('sectors')->default(0);
             $table->integer('secretSectors')->default(0);
+            $table->timestamps();
+        });
+
+        Schema::create('ports', function (Blueprint $table) {
+            $table->id();
+            $table->string('name')->unique();
             $table->timestamps();
         });
 
@@ -143,7 +159,22 @@ return new class extends Migration
             $table->string('filename');
             $table->string('name');
             $table->integer('comp_level_id')->nullable();
+            $table->integer('iwad_id')->nullable();
+            $table->boolean('freelook')->default(false);
+            $table->boolean('jump')->default(false);
+            $table->boolean('crouch')->default(false);
             $table->timestamps();
+        });
+
+        Schema::create('link_installs_wads', function (Blueprint $table) {
+            $table->id();
+            $table->integer('install_id');
+            $table->integer('wad_id');
+            $table->boolean('is_compatible');
+            $table->text('notes')->nullable();
+            $table->timestamps();
+
+            $table->unique(['install_id', 'wad_id']);
         });
 
         Schema::create('link_lumps_maps', function (Blueprint $table) {
@@ -152,6 +183,15 @@ return new class extends Migration
             $table->integer('lump_id'); // Foreign key for lumps
             $table->boolean('is_header')->default(false); // Indicates if this lump is the header
             $table->timestamps();
+        });
+
+        Schema::create('link_ports_wads', function (Blueprint $table) {
+            $table->id();
+            $table->integer('port_id');
+            $table->integer('wad_id');
+            $table->timestamps();
+
+            $table->unique(['port_id', 'wad_id']);
         });
 
         DB::table('comp_levels')->insert([

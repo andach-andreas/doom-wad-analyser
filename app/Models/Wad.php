@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Wad extends Model
 {
@@ -19,6 +20,18 @@ class Wad extends Model
         return $this->belongsTo(CompLevel::class);
     }
 
+    public function installs(): BelongsToMany
+    {
+        return $this->belongsToMany(Install::class, 'link_installs_wads')
+            ->withPivot(['is_compatible', 'notes'])
+            ->withTimestamps();
+    }
+
+    public function iwad()
+    {
+        return $this->belongsTo(Wad::class, 'iwad_id');
+    }
+
     public function lumps()
     {
         return $this->hasMany(Lump::class);
@@ -27,6 +40,11 @@ class Wad extends Model
     public function maps()
     {
         return $this->hasMany(Map::class, 'wad_id');
+    }
+
+    public function ports(): BelongsToMany
+    {
+        return $this->belongsToMany(Port::class, 'link_ports_wads');
     }
 
     public function types()
