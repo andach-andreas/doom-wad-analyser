@@ -20,7 +20,11 @@ return new class extends Migration
             $table->id();
             $table->integer('port_id');
             $table->string('version');
-            $table->string('path');
+            $table->string('slug')->unique();
+            $table->string('download_url')->nullable();
+            $table->timestamp('downloaded_at')->nullable();
+            $table->timestamp('extracted_at')->nullable();
+            $table->boolean('available')->default(true);
             $table->timestamps();
 
             $table->unique(['port_id', 'version']);
@@ -74,6 +78,8 @@ return new class extends Migration
         Schema::create('ports', function (Blueprint $table) {
             $table->id();
             $table->string('name')->unique();
+            $table->string('github_url')->nullable();
+            $table->string('slug')->nullable();
             $table->timestamps();
         });
 
@@ -218,14 +224,46 @@ return new class extends Migration
         ]);
 
         DB::table('ports')->insert([
-            ['name' => 'Chocolate Doom'],
-            ['name' => 'Crispy Doom'],
-            ['name' => 'DOOM Retro'],
-            ['name' => 'DSDA-Doom'],
-            ['name' => 'Eternity Engine'],
-            ['name' => 'GZDoom'],
-            ['name' => 'PrBoom+'],
-            ['name' => 'Zandronum'],
+            [
+                'name' => 'Chocolate Doom',
+                'slug' => 'chocolate-doom',
+                'github_url' => 'https://github.com/chocolate-doom/chocolate-doom'
+            ],
+            [
+                'name' => 'Crispy Doom',
+                'slug' => 'crispy-doom',
+                'github_url' => 'https://github.com/fabiangreffrath/crispy-doom'
+            ],
+            [
+                'name' => 'DOOM Retro',
+                'slug' => 'doom-retro',
+                'github_url' => 'https://github.com/bradharding/doomretro'
+            ],
+            [
+                'name' => 'DSDA-Doom',
+                'slug' => 'dsda-doom',
+                'github_url' => 'https://github.com/kraflab/dsda-doom'
+            ],
+            [
+                'name' => 'Eternity Engine',
+                'slug' => 'eternity',
+                'github_url' => 'https://github.com/team-eternity/eternity'
+            ],
+            [
+                'name' => 'GZDoom',
+                'slug' => 'gzdoom',
+                'github_url' => 'https://github.com/ZDoom/gzdoom'
+            ],
+            [
+                'name' => 'PrBoom+',
+                'slug' => 'prboom-plus',
+                'github_url' => 'https://github.com/coelckers/prboom-plus'
+            ],
+            [
+                'name' => 'Zandronum',
+                'slug' => 'zandronum',
+                'github_url' => 'https://github.com/drfrag666/zandronum'
+            ],
         ]);
     }
 
