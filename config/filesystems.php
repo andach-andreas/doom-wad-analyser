@@ -60,9 +60,9 @@ return [
             'report' => false,
         ],
 
-        'dsda' => [
+        'ports' => [
             'driver' => 'local',
-            'root' => storage_path('app/private/dsda'),
+            'root' => storage_path('app/private/ports'),
             'serve' => true,
             'throw' => false,
             'report' => false,

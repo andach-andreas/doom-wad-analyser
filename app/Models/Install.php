@@ -5,10 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class Install extends Model
 {
-    protected $fillable = ['port_id', 'version', 'path'];
+    protected $fillable = ['port_id', 'version', 'path', 'download_url',
+        'downloaded_at', 'extracted_at'];
 
     public function port(): BelongsTo
     {
@@ -24,25 +28,44 @@ class Install extends Model
 
     public function downloadAndExtract()
     {
-        if (!$this->download_url) return;
+        $downloadUrl = $this->download_url;
+        $portSlug = $this->port->slug;
+        $version = $this->version;
 
-        $zipPath = storage_path("app/temp_{$this->slug}.zip");
+        $disk = Storage::disk('ports');
+        $tmpDir = "tmp";
+        $destDir = "{$portSlug}/{$version}";
 
-        Http::withHeaders(['User-Agent' => 'LaravelApp'])->get($this->download_url)->sink($zipPath);
+        // Ensure directories exist
+        $disk->makeDirectory($tmpDir);
+        $disk->makeDirectory($destDir);
 
-        $extractPath = Storage::disk('dsda')->path("{$this->port->slug}/{$this->version}");
+        // Build temporary ZIP path
+        $tmpFilename = "{$tmpDir}/" . Str::slug("{$portSlug}-{$version}") . ".zip";
+        $tmpPath = $disk->path($tmpFilename);
 
-        $zip = new \ZipArchive();
-        if ($zip->open($zipPath) === true) {
-            $zip->extractTo($extractPath);
-            $zip->close();
+        // Stream and download ZIP directly
+        $response = Http::withOptions(['sink' => $tmpPath])->get($downloadUrl);
 
-            $this->update([
-                'downloaded_at' => now(),
-                'extracted_at' => now(),
-            ]);
+        if (!$response->successful()) {
+            throw new \Exception("Failed to download ZIP from: {$downloadUrl}");
         }
 
-        unlink($zipPath);
+        // Extract ZIP
+        $zip = new \ZipArchive();
+        if ($zip->open($tmpPath) === true) {
+            $zip->extractTo($disk->path($destDir));
+            $zip->close();
+        } else {
+            throw new \Exception("Unable to extract ZIP: {$tmpPath}");
+        }
+
+        // Update install timestamps
+        $this->downloaded_at = date('Y-m-d H:i:s');
+        $this->extracted_at = date('Y-m-d H:i:s');
+        $this->save();
+
+        // Clean up temp file
+        $disk->delete($tmpFilename);
     }
 }

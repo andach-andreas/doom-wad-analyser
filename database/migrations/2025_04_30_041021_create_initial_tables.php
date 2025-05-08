@@ -20,7 +20,6 @@ return new class extends Migration
             $table->id();
             $table->integer('port_id');
             $table->string('version');
-            $table->string('slug')->unique();
             $table->string('download_url')->nullable();
             $table->timestamp('downloaded_at')->nullable();
             $table->timestamp('extracted_at')->nullable();
@@ -259,11 +258,11 @@ return new class extends Migration
                 'slug' => 'prboom-plus',
                 'github_url' => 'https://github.com/coelckers/prboom-plus'
             ],
-            [
-                'name' => 'Zandronum',
-                'slug' => 'zandronum',
-                'github_url' => 'https://github.com/drfrag666/zandronum'
-            ],
+//            [
+//                'name' => 'Zandronum',
+//                'slug' => 'zandronum',
+//                'github_url' => 'https://github.com/drfrag666/zandronum'
+//            ],
         ]);
     }
 
