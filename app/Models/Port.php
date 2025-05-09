@@ -26,9 +26,13 @@ class Port extends Model
                 continue;
             }
 
-            $zipAsset = collect($release['assets'])->first(fn($a) =>
-            str_ends_with($a['name'], '.zip')
-            );
+            $zipAsset = collect($release['assets'])->first(function ($a) {
+                $name = strtolower($a['name']);
+                return str_ends_with($name, '.zip') && (
+                        str_contains($name, 'win') ||
+                        str_contains($name, 'windows')
+                    );
+            });
 
             $downloadUrl = $zipAsset['browser_download_url'] ?? null;
 
