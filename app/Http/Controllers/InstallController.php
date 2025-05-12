@@ -13,15 +13,15 @@ class InstallController extends Controller
 
         if (!$install->downloaded_at) {
             if (!$install->download()) {
-                return response()->json(['error' => 'Download failed.'], 500);
+                session()->flash('error', 'Download failed.');
             }
         }
 
         if ($install->extract()) {
-            return response()->json(['message' => 'Extraction successful.']);
+            session()->flash('success', 'Extraction successful.');
         }
 
-        return response()->json(['error' => 'Extraction failed.'], 500);
+        return redirect()->route('install.show', $id);
     }
 
     public function show($id)
