@@ -14,4 +14,12 @@ class PortController extends Controller
 
         return view('main.port.index', $args);
     }
+
+    public function show($id)
+    {
+        $args = [];
+        $args['port'] = Port::find($id);
+
+        return view('main.port.show', $args);
+    }
 }
