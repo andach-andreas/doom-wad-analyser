@@ -18,7 +18,7 @@
             <x-andach-tbody>
                 @foreach ($port->installs as $install)
                     <tr>
-                        <x-andach-td>{{ $install->version }}</x-andach-td>
+                        <x-andach-td><a href="{{ route('install.show', $install->id) }}">{{ $install->version }}</a></x-andach-td>
                         <x-andach-td>{{ $install->download_url }}</x-andach-td>
                         <x-andach-td>{{ $install->downloaded_at }}</x-andach-td>
                         <x-andach-td>{{ $install->extracted_at }}</x-andach-td>

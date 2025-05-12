@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -26,46 +27,65 @@ class Install extends Model
             ->withTimestamps();
     }
 
-    public function downloadAndExtract()
+    public function download(): bool
     {
-        $downloadUrl = $this->download_url;
-        $portSlug = $this->port->slug;
-        $version = $this->version;
-
-        $disk = Storage::disk('ports');
-        $tmpDir = "tmp";
-        $destDir = "{$portSlug}/{$version}";
-
-        // Ensure directories exist
-        $disk->makeDirectory($tmpDir);
-        $disk->makeDirectory($destDir);
-
-        // Build temporary ZIP path
-        $tmpFilename = "{$tmpDir}/" . Str::slug("{$portSlug}-{$version}") . ".zip";
-        $tmpPath = $disk->path($tmpFilename);
-
-        // Stream and download ZIP directly
-        $response = Http::withOptions(['sink' => $tmpPath])->get($downloadUrl);
-
-        if (!$response->successful()) {
-            throw new \Exception("Failed to download ZIP from: {$downloadUrl}");
+        if (!$this->download_url) {
+            return false;
         }
 
-        // Extract ZIP
-        $zip = new \ZipArchive();
-        if ($zip->open($tmpPath) === true) {
-            $zip->extractTo($disk->path($destDir));
-            $zip->close();
-        } else {
-            throw new \Exception("Unable to extract ZIP: {$tmpPath}");
+        $tmpPath = $this->zip_path;
+        $response = Http::get($this->download_url);
+
+        if (!$response->ok()) {
+            return false;
         }
 
-        // Update install timestamps
-        $this->downloaded_at = date('Y-m-d H:i:s');
-        $this->extracted_at = date('Y-m-d H:i:s');
+        Storage::disk('ports')->put($tmpPath, $response->body());
+
+        $this->downloaded_at = now();
         $this->save();
 
-        // Clean up temp file
-        $disk->delete($tmpFilename);
+        return true;
+    }
+
+    public function downloadAndExtract(): bool
+    {
+        if (!$this->download()) {
+            return false;
+        }
+
+        return $this->extract();
+    }
+
+    public function extract(): bool
+    {
+        $tmpPath = storage_path('app/private/ports/' . $this->zip_path);
+        $extractPath = storage_path('app/private/ports/' . $this->folder_path);
+
+        if (!file_exists($tmpPath)) {
+            return false;
+        }
+
+        $zip = new \ZipArchive();
+        if ($zip->open($tmpPath) === true) {
+            $zip->extractTo($extractPath);
+            $zip->close();
+
+            $this->extracted_at = now();
+            $this->save();
+            return true;
+        }
+
+        return false;
+    }
+
+    public function getFolderPathAttribute(): string
+    {
+        return $this->port->slug . '/' . $this->version;
+    }
+
+    public function getZipPathAttribute(): string
+    {
+        return 'zip/' . $this->port->slug . '/' . $this->version . '.zip';
     }
 }
