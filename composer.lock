@@ -4,8 +4,73 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "cc8a3304d8729a8ae7fc80bc6c41e226",
+    "content-hash": "4fd22de784637a59a1552789df344cfc",
     "packages": [
+        {
+            "name": "andach/laravel-view-components",
+            "version": "v1.0.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/andach-limited/laravel-view-components.git",
+                "reference": "4c6b14900a4f780e8a27f0e40d8234a6fe063534"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/andach-limited/laravel-view-components/zipball/4c6b14900a4f780e8a27f0e40d8234a6fe063534",
+                "reference": "4c6b14900a4f780e8a27f0e40d8234a6fe063534",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.1",
+                "spatie/laravel-package-tools": "^1.14.0"
+            },
+            "require-dev": {
+                "laravel/pint": "^1.0",
+                "nunomaduro/collision": "^7.8",
+                "orchestra/testbench": "^8.8",
+                "phpunit/phpunit": "^10.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "aliases": {
+                        "LaravelViewComponents": "Andach\\LaravelViewComponents\\Facades\\LaravelViewComponents"
+                    },
+                    "providers": [
+                        "Andach\\LaravelViewComponents\\LaravelViewComponentsServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Andach\\LaravelViewComponents\\": "src/",
+                    "Andach\\LaravelViewComponents\\Database\\Factories\\": "database/factories/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Andreas Christodolou",
+                    "email": "andreas@andach.co.uk",
+                    "role": "Developer"
+                }
+            ],
+            "description": "This is my package laravel-view-components",
+            "homepage": "https://github.com/andach-limited/laravel-view-components",
+            "keywords": [
+                "andach-limited",
+                "laravel",
+                "laravel-view-components"
+            ],
+            "support": {
+                "issues": "https://github.com/andach-limited/laravel-view-components/issues",
+                "source": "https://github.com/andach-limited/laravel-view-components/tree/v1.0.4"
+            },
+            "time": "2025-04-11T09:16:00+00:00"
+        },
         {
             "name": "brick/math",
             "version": "0.12.3",
@@ -8452,12 +8517,12 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {},
+    "stability-flags": [],
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
         "php": "^8.2"
     },
-    "platform-dev": {},
-    "plugin-api-version": "2.6.0"
+    "platform-dev": [],
+    "plugin-api-version": "2.2.0"
 }
