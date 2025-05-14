@@ -49,9 +49,9 @@ class DownloadWads extends Command
                 foreach ($links as $link) {
                     $href = $link->getAttribute('href');
 
-                    if (preg_match('/\.(zip|txt)$/i', $href)) {
+                    if (preg_match('/\.(zip)$/i', $href)) {
                         $fileUrl = $url . $href;
-                        $savePath = storage_path("levels/$main/$sub/$href");
+                        $savePath = storage_path("zips/$main/$sub/$href");
 
                         if (!file_exists($savePath)) {
                             $this->info("Downloading $fileUrl");

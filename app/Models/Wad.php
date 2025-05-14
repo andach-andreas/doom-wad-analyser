@@ -27,11 +27,6 @@ class Wad extends Model
             ->withTimestamps();
     }
 
-    public function iwad()
-    {
-        return $this->belongsTo(Wad::class, 'iwad_id');
-    }
-
     public function lumps()
     {
         return $this->hasMany(Lump::class);

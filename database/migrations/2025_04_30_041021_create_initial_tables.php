@@ -162,12 +162,14 @@ return new class extends Migration
         Schema::create('wads', function (Blueprint $table) {
             $table->id();
             $table->string('filename');
-            $table->string('name');
+            $table->string('name')->nullable();
             $table->integer('comp_level_id')->nullable();
-            $table->integer('iwad_id')->nullable();
+            $table->string('iwad');
             $table->boolean('freelook')->default(false);
             $table->boolean('jump')->default(false);
             $table->boolean('crouch')->default(false);
+            $table->timestamp('downloaded_at')->nullable();
+            $table->timestamp('extracted_at')->nullable();
             $table->timestamps();
         });
 
