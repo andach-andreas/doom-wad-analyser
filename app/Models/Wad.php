@@ -161,8 +161,6 @@ class Wad extends Model
     public function insertIntoDatabase()
     {
         $this->path = $this->wad_path;
-        $this->filename = basename($this->wad_path);
-        $this->name = basename($this->wad_path);
         $this->save();
 
         $this->insertIntoDatabaseLumps();
