@@ -77,6 +77,14 @@ class MenuServiceProvider extends ServiceProvider
             'items'             => [],
         ];
 
+        $return['Wads'] = [
+            'currentlySelected' => 'wad' === $firstPartOfRoute,
+            'parentRoute'       => 'wad.index',
+            'routePrefix'       => 'wad',
+            'svg'               => '<i class="fa-solid fa-photo-film"></i>',
+            'items'             => [],
+        ];
+
         return $return;
     }
 }

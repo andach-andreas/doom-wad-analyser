@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Http;
 
 class Wad extends Model
 {
@@ -56,6 +58,72 @@ class Wad extends Model
             ->unique('type'); // Keep overridden ones
     }
 
+    public function download(): bool
+    {
+        $url = $this->buildDownloadUrl();
+        $zipPath = $this->zip_path;
+
+        if (File::exists($zipPath)) {
+            return true;
+        }
+
+        File::makeDirectory(dirname($zipPath), 0755, true, true);
+
+        try {
+            $response = Http::timeout(30)->get($url);
+            if (!$response->successful()) {
+                return false;
+            }
+
+            File::put($zipPath, $response->body());
+
+            $this->downloaded_at = now();
+            $this->save();
+
+            return true;
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
+    public function downloadAndExtract(): bool
+    {
+        if (!$this->download()) {
+            return false;
+        }
+
+        return $this->extract();
+    }
+
+    public function extract(): bool
+    {
+        $zipPath = $this->zip_path;
+        $folderPath = $this->folder_path;
+
+        if (!File::exists($zipPath)) {
+            return false;
+        }
+
+        if (File::exists($folderPath)) {
+            return true;
+        }
+
+        File::makeDirectory($folderPath, 0755, true, true);
+
+        $zip = new \ZipArchive();
+        if ($zip->open($zipPath) === true) {
+            $zip->extractTo($folderPath);
+            $zip->close();
+
+            $this->extracted_at = now();
+            $this->save();
+
+            return true;
+        }
+
+        return false;
+    }
+
     public function getFolderPathAttribute()
     {
         return storage_path('/wads/'. $this->idgames_folder.'/'. $this->filename);
@@ -98,6 +166,16 @@ class Wad extends Model
         {
             $map->insertIntoDatabase();
         }
+    }
+
+    protected function buildDownloadUrl(): string
+    {
+        $base = 'https://youfailit.net/pub/idgames/levels/';
+        $folder = $this->iwad; // 'doom' or 'doom2'
+        $sub = $this->idgames_folder;
+        $file = $this->filename . '.zip';
+
+        return "$base$folder/$sub/$file";
     }
 
     private function insertIntoDatabaseLumps(): void

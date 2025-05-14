@@ -15,3 +15,6 @@ Route::get('/install/{id}/extract', [InstallController::class, 'extract'])->name
 Route::get('/map/{id}/image', [MapController::class, 'render']);
 Route::get('/port', [PortController::class, 'index'])->name('port.index');
 Route::get('/port/{id}', [PortController::class, 'show'])->name('port.show');;
+Route::get('/wad', [WadController::class, 'index'])->name('wad.index');
+Route::get('/wad/{id}/download-and-extract', [WadController::class, 'downloadAndExtract'])->name('wad.download-and-extract');
+Route::get('/wad/{id}', [WadController::class, 'show'])->name('wad.show');

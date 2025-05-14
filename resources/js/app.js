@@ -1,5 +1,6 @@
 import './bootstrap';
 import '../css/app.css';
+import '/node_modules/@fortawesome/fontawesome-free/css/all.min.css';
 
 const lightSwitches = document.querySelectorAll('.light-switch');
 if (lightSwitches.length > 0) {
