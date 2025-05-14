@@ -71,7 +71,7 @@ class MenuServiceProvider extends ServiceProvider
 
         $return['Ports'] = [
             'currentlySelected' => 'port' === $firstPartOfRoute,
-            'parentRoute'       => '',
+            'parentRoute'       => 'port.index',
             'routePrefix'       => 'port',
             'svg'               => '<i class="fa-solid fa-photo-film"></i>',
             'items'             => [],

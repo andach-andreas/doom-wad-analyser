@@ -8,7 +8,6 @@ use App\Http\Controllers\WadController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'home'])->name('home');
-Route::get('/logout', [HomeController::class, 'home'])->name('logout');
 
 Route::get('/analyze', [WadController::class, 'analyze']);
 Route::get('/install/{id}', [InstallController::class, 'show'])->name('install.show');
