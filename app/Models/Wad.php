@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 
 class Wad extends Model
 {
@@ -146,6 +147,11 @@ class Wad extends Model
         if ($firstChar >= 'v' && $firstChar <= 'z') return 'v-z';
 
         return '_'; // fallback
+    }
+
+    public function getIwadPathAttribute()
+    {
+        return Storage::disk('iwads')->path("{$this->iwad}.wad");
     }
 
     public function getTextFileContentsAttribute(): string

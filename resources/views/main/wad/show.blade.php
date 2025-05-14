@@ -4,6 +4,7 @@
 
 @section('content')
     <p><a href="{{ route('wad.text', $wad->id) }}">View Text File</a></p>
+    <p><a href="{{ route('install.play', [68, $wad->id]) }}">Play on DSDA</a></p>
 
     <x-andach-card title="Base WAD Information">
         <div class="grid grid-cols-2">

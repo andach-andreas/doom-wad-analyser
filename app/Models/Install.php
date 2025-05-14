@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use RecursiveIteratorIterator;
+use Symfony\Component\Finder\Iterator\RecursiveDirectoryIterator;
 
 class Install extends Model
 {
@@ -40,7 +42,7 @@ class Install extends Model
             return false;
         }
 
-        Storage::disk('ports')->put($tmpPath, $response->body());
+        Storage::disk('installs')->put($tmpPath, $response->body());
 
         $this->downloaded_at = now();
         $this->save();
@@ -59,8 +61,8 @@ class Install extends Model
 
     public function extract(): bool
     {
-        $tmpPath = storage_path('app/private/ports/' . $this->zip_path);
-        $extractPath = storage_path('app/private/ports/' . $this->folder_path);
+        $tmpPath = storage_path('installs/' . $this->zip_path);
+        $extractPath = storage_path('installs/' . $this->folder_path);
 
         if (!file_exists($tmpPath)) {
             return false;
@@ -77,6 +79,29 @@ class Install extends Model
         }
 
         return false;
+    }
+
+    public function executablePath(): Attribute
+    {
+        return Attribute::get(function () {
+            $installRoot = Storage::disk('installs')->path("{$this->port->slug}/{$this->version}");
+
+            if (!is_dir($installRoot)) {
+                return null;
+            }
+
+            $iterator = new RecursiveIteratorIterator(
+                new RecursiveDirectoryIterator($installRoot, RecursiveDirectoryIterator::SKIP_DOTS)
+            );
+
+            foreach ($iterator as $file) {
+                if ($file->isFile() && str_ends_with(strtolower($file->getFilename()), '.exe')) {
+                    return $file->getPathname();
+                }
+            }
+
+            return null;
+        });
     }
 
     public function getFolderPathAttribute(): string

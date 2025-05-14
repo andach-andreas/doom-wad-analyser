@@ -60,9 +60,17 @@ return [
             'report' => false,
         ],
 
-        'ports' => [
+        'installs' => [
             'driver' => 'local',
-            'root' => storage_path('app/private/ports'),
+            'root' => storage_path('installs'),
+            'serve' => true,
+            'throw' => false,
+            'report' => false,
+        ],
+
+        'iwads' => [
+            'driver' => 'local',
+            'root' => storage_path('iwads'),
             'serve' => true,
             'throw' => false,
             'report' => false,
@@ -70,7 +78,15 @@ return [
 
         'wads' => [
             'driver' => 'local',
-            'root' => storage_path('app/private/wads'),
+            'root' => storage_path('wads'),
+            'serve' => true,
+            'throw' => false,
+            'report' => false,
+        ],
+
+        'zips' => [
+            'driver' => 'local',
+            'root' => storage_path('zips'),
             'serve' => true,
             'throw' => false,
             'report' => false,
