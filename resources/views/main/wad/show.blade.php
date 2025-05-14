@@ -3,6 +3,8 @@
 @section('title', 'Wad - '.$wad->name)
 
 @section('content')
+    <p><a href="{{ route('wad.text', $wad->id) }}">View Text File</a></p>
+
     <x-andach-card title="Base WAD Information">
         <div class="grid grid-cols-2">
             <div>Filename</div>

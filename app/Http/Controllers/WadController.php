@@ -38,4 +38,12 @@ class WadController extends Controller
 
         return view('main.wad.show', $args);
     }
+
+    public function text($id)
+    {
+        $args = [];
+        $args['wad'] = Wad::find($id);
+
+        return view('main.wad.text', $args);
+    }
 }

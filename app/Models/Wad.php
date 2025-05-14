@@ -148,6 +148,16 @@ class Wad extends Model
         return '_'; // fallback
     }
 
+    public function getTextFileContentsAttribute(): string
+    {
+        $subdir = $this->idgames_folder; // e.g., 'a-c'
+        $wadName = $this->filename;
+        $path = storage_path("wads/{$subdir}/{$wadName}/{$wadName}.txt");
+
+        return file_exists($path) ? file_get_contents($path) ?: '' : '';
+    }
+
+
     public function getWadPathAttribute()
     {
         return storage_path('/wads/'. $this->idgames_folder.'/'. $this->filename.'/'.$this->filename.'.wad');
