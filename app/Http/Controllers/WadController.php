@@ -7,12 +7,6 @@ use Illuminate\Http\Request;
 
 class WadController extends Controller
 {
-    public function analyze()
-    {
-        $wad = new Wad();
-        $wad->insertIntoDatabase(storage_path('wads/doom2.wad'));
-    }
-
     public function downloadAndExtract($id)
     {
         $wad = Wad::find($id);
@@ -27,6 +21,14 @@ class WadController extends Controller
         $args['wads'] = Wad::all();
 
         return view('main.wad.index', $args);
+    }
+
+    public function insertIntoDatabase($id)
+    {
+        $wad = Wad::find($id);
+        $wad->insertIntoDatabase();
+
+        return redirect()->route('wad.show', $id);
     }
 
     public function show($id)

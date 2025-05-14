@@ -118,6 +118,8 @@ class Wad extends Model
             $this->extracted_at = now();
             $this->save();
 
+            $this->insertIntoDatabase();
+
             return true;
         }
 
@@ -146,16 +148,21 @@ class Wad extends Model
         return '_'; // fallback
     }
 
+    public function getWadPathAttribute()
+    {
+        return storage_path('/wads/'. $this->idgames_folder.'/'. $this->filename.'/'.$this->filename.'.wad');
+    }
+
     public function getZipPathAttribute()
     {
         return storage_path('/zips/'. $this->idgames_folder.'/'. $this->filename.'.zip');
     }
 
-    public function insertIntoDatabase(string $filePath)
+    public function insertIntoDatabase()
     {
-        $this->path = $filePath;
-        $this->filename = basename($filePath);
-        $this->name = basename($filePath);
+        $this->path = $this->wad_path;
+        $this->filename = basename($this->wad_path);
+        $this->name = basename($this->wad_path);
         $this->save();
 
         $this->insertIntoDatabaseLumps();
