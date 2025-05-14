@@ -56,6 +56,33 @@ class Wad extends Model
             ->unique('type'); // Keep overridden ones
     }
 
+    public function getFolderPathAttribute()
+    {
+        return storage_path('/wads/'. $this->idgames_folder.'/'. $this->filename);
+    }
+
+    public function getIdgamesFolderAttribute(): string
+    {
+        $firstChar = strtolower(substr($this->filename, 0, 1));
+        if (is_numeric($firstChar)) return '0-9';
+
+        if ($firstChar >= 'a' && $firstChar <= 'c') return 'a-c';
+        if ($firstChar >= 'd' && $firstChar <= 'f') return 'd-f';
+        if ($firstChar >= 'g' && $firstChar <= 'i') return 'g-i';
+        if ($firstChar >= 'j' && $firstChar <= 'l') return 'j-l';
+        if ($firstChar >= 'm' && $firstChar <= 'o') return 'm-o';
+        if ($firstChar >= 'p' && $firstChar <= 'r') return 'p-r';
+        if ($firstChar >= 's' && $firstChar <= 'u') return 's-u';
+        if ($firstChar >= 'v' && $firstChar <= 'z') return 'v-z';
+
+        return '_'; // fallback
+    }
+
+    public function getZipPathAttribute()
+    {
+        return storage_path('/zips/'. $this->idgames_folder.'/'. $this->filename.'.zip');
+    }
+
     public function insertIntoDatabase(string $filePath)
     {
         $this->path = $filePath;
