@@ -37,7 +37,7 @@
             <x-andach-tbody>
                 @foreach ($wad->maps as $map)
                     <tr>
-                        <x-andach-td>{{ $map->name }}</x-andach-td>
+                        <x-andach-td><a href="{{ route('map.show', $map->id) }}">{{ $map->name }}</a></x-andach-td>
                         <x-andach-td>{{ $map->things }}</x-andach-td>
                         <x-andach-td>{{ $map->sectors }}</x-andach-td>
                         <x-andach-td>{{ $map->secretSectors }}</x-andach-td>

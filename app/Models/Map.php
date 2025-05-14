@@ -67,6 +67,17 @@ class Map extends Model
         return $this->hasMany(Vertex::class);
     }
 
+    public function wad()
+    {
+        return $this->belongsTo(Wad::class);
+    }
+
+    public function getMapImageUrlAttribute(): string
+    {
+        $relativePath = $this->renderTopDownMapImage();
+        return $relativePath ? asset("storage/$relativePath") : '';
+    }
+
     public function insertIntoDatabase()
     {
         $this->insertIntoDatabaseStats();
@@ -262,12 +273,23 @@ class Map extends Model
         }
     }
 
-    public function renderTopDownMapImage(string $outputPath): void
+    public function renderTopDownMapImage(): string
     {
+        $subdir = $this->wad->idgames_folder; // e.g., 'a-c'
+        $wadName = $this->wad->filename;
+        $mapName = strtolower($this->name); // e.g., 'map01'
+
+        $relativePath = "maps/$subdir/$wadName/{$mapName}.png";
+        $outputPath = storage_path("app/public/$relativePath");
+
+        if (file_exists($outputPath)) {
+            return $relativePath;
+        }
+
         $vertexLump = $this->lumps()->where('name', 'VERTEXES')->first();
         $linedefLump = $this->lumps()->where('name', 'LINEDEFS')->first();
 
-        if (!$vertexLump || !$linedefLump) return;
+        if (!$vertexLump || !$linedefLump) return '';
 
         $vertices = [];
         $entrySize = 4;
@@ -277,7 +299,6 @@ class Map extends Model
         $minX = $minY = PHP_INT_MAX;
         $maxX = $maxY = PHP_INT_MIN;
 
-        // Parse vertices
         for ($i = 0; $i < $numEntries; $i++) {
             $offset = $i * $entrySize;
             $x = unpack('s', substr($data, $offset, 2))[1];
@@ -291,7 +312,6 @@ class Map extends Model
 
         $width = 800;
         $height = 800;
-
         $scale = min($width / ($maxX - $minX + 1), $height / ($maxY - $minY + 1)) * 0.9;
         $offsetX = $width / 2 - ($minX + $maxX) * $scale / 2;
         $offsetY = $height / 2 + ($minY + $maxY) * $scale / 2;
@@ -301,7 +321,6 @@ class Map extends Model
         $fg = imagecolorallocate($img, 255, 255, 255);
         imagefill($img, 0, 0, $bg);
 
-        // Parse linedefs
         $entrySize = 14;
         $data = $linedefLump->data;
         $numEntries = intdiv(strlen($data), $entrySize);
@@ -316,7 +335,6 @@ class Map extends Model
             [$x1, $y1] = [$vertices[$v1]['x'], $vertices[$v1]['y']];
             [$x2, $y2] = [$vertices[$v2]['x'], $vertices[$v2]['y']];
 
-            // Transform and draw
             $sx1 = intval($x1 * $scale + $offsetX);
             $sy1 = intval(-$y1 * $scale + $offsetY);
             $sx2 = intval($x2 * $scale + $offsetX);
@@ -325,10 +343,12 @@ class Map extends Model
             imageline($img, $sx1, $sy1, $sx2, $sy2, $fg);
         }
 
+        @mkdir(dirname($outputPath), 0777, true);
         imagepng($img, $outputPath);
         imagedestroy($img);
-    }
 
+        return $relativePath; // Return relative to public storage
+    }
 
     protected function countLumpEntries(Lump $lump, int $entrySize): int
     {

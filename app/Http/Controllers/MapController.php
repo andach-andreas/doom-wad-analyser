@@ -20,4 +20,12 @@ class MapController extends Controller
             'Content-Type' => 'image/png'
         ]);
     }
+
+    public function show($id)
+    {
+        $args =[];
+        $args['map'] = Map::find($id);
+
+        return view('main.map.show', $args);
+    }
 }
